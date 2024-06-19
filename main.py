@@ -1,4 +1,5 @@
 import os
+import random
 import requests
 import urllib.parse
 from datetime import datetime
@@ -115,28 +116,52 @@ def get_saved_albums():
 
     # NOTE: only want to get 5 most recently-added projects and what not
     response = requests.get(API_BASE_URL + 'me/albums?limit=5&offset=0', headers=headers)
-    albums = response.json()
+    recent_albums = response.json()
 
-    '''
-    dict. to streo album/artist names.
-    key: album name
-    value: list of artist(s)s
-    '''
+    # bunch of lists that I am going to use to store all sorts of info in
     recent_artists = []
+    one_removed = []
+    two_removed = []
+    three_removed = []
 
     # add the first artist from each of the 5 most "recent" albums
-    for item in albums["items"]:
+    for item in recent_albums["items"]:
         recent_artists.append(item['album']['artists'][0]['id'])
 
-    # now, for each artist, want to get the similair artists, or something like that
+    # TODO: lots of duplication that can be removed
 
-    print(recent_artists)
+    # now, for each recent artist, want to get once-removed artists through "related artist" call
+    for artist_id in recent_artists:
+        response = requests.get(API_BASE_URL + 'artists/' + artist_id + "/related-artists", headers=headers)
+        related_artists = response.json()
+        one_removed.append(related_artists["artists"][random.randint(4, 14)]["id"])
 
-    
-    return(jsonify(albums))
+    # now, for each once-removed artist, want to get twice-removed artists through "related artist" call
+    for artist_id in one_removed:
+        response = requests.get(API_BASE_URL + 'artists/' + artist_id + "/related-artists", headers=headers)
+        related_artists = response.json()
+        two_removed.append(related_artists["artists"][random.randint(4, 14)]["id"])
+
+    # then, for each twice-removed artist, want to get five thrice-removed artists
+    for artist_id in two_removed:
+        subset = []
+        indices = random.sample(range(4, 14), 5)
+        response = requests.get(API_BASE_URL + 'artists/' + artist_id + "/related-artists", headers=headers)
+        related_artists = response.json()
+        # TODO: change from "name" to "id"
+        subset.append(related_artists["artists"][indices[0]]["name"])
+        subset.append(related_artists["artists"][indices[1]]["name"])
+        subset.append(related_artists["artists"][indices[2]]["name"])
+        subset.append(related_artists["artists"][indices[3]]["name"])
+        subset.append(related_artists["artists"][indices[4]]["name"])
+        three_removed.append(subset)
+        
+    print(three_removed)
+    # now, want to get ONE of fourth-eighth related artists
+    return(jsonify(recent_albums))
 
 
-# TODO: have to actually write this endpoint TBH
+# TODO: have to actually write this endpoint
 @app.route('/refresh-token')
 def refresh_token():
     ''' 
@@ -155,17 +180,6 @@ if __name__ == '__main__':
     app.run(host="0.0.0.0", debug=True) 
 
 '''
-maybe just need to get the artits that have been listened to, since I am not going
-to be cross-referencing with the albums anyways
-
-so yeah, i can just loop through and get the artits, then get get similar artits multiple times
-for each of those artists
-then, once i have the final artits, i can just get the albums, put them together with the artists, 
-and then diplay them in some way that makes a lot of sense and what not. 
-'''
-
-
-'''
 a whole list of TODO
 re-organize so that the endpoints are in different files
 get this working on a real server (Render)
@@ -175,8 +189,4 @@ NOTE: i am actually going to want to get the artist IDs, not the names of the ar
 how can I speed up this program? Do I really need to grab every saved album? 
 '''
 
-# ALSO, the sight is super slow, and this is without even making the other calls .. how can I speed this whole
-# thing up ... also i am only going to want to look at all the albums once, i am not going to want to do that 
-# again tbh. 
-
-# TODO: add a note on how spotify defines "recent"
+# TODO: add a note on how spotify defines "recent" for the albums
