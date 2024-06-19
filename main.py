@@ -19,7 +19,7 @@ TOKEN_URL = os.getenv('TOKEN_URL')
 API_BASE_URL = os.getenv('API_BASE_URL')
 
 '''
-Given albums (json) and dictionary of album/artist names, add the new albums/artists to dict.
+Given albums (json) and dictionary of album/artist ids, add the new albums/artists to dict.
 Return the number of albums that were added.
 '''
 def add_albums(albums, album_dict):
@@ -28,8 +28,8 @@ def add_albums(albums, album_dict):
     for item in albums["items"]:
         item_artists = []
         for artist in item['album']['artists']:
-            item_artists.append(artist['name'])
-        album_dict[item["album"]["name"]] = item_artists
+            item_artists.append(artist['id'])
+        album_dict[item["album"]["id"]] = item_artists
         album_count += 1
 
     return album_count
@@ -163,3 +163,17 @@ def refresh_token():
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", debug=True) 
+
+
+'''
+a whole list of TODO
+re-organize so that the endpoints are in different files
+get this working on a real server (Render)
+make the pages look a little better? -- see Flask manual
+go through the artist route so that we can have good recs
+NOTE: i am actually going to want to get the artist IDs, not the names of the artists
+'''
+
+# ALSO, the sight is super slow, and this is without even making the other calls .. how can I speed this whole
+# thing up ... also i am only going to want to look at all the albums once, i am not going to want to do that 
+# again tbh. 
