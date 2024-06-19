@@ -113,7 +113,8 @@ def get_saved_albums():
         'Authorization': f"Bearer {session['access_token']}"
     }
 
-    response = requests.get(API_BASE_URL + 'me/albums?limit=50&offset=0', headers=headers)
+    # NOTE: only want to get 5 most recently-added projects and what not
+    response = requests.get(API_BASE_URL + 'me/albums?limit=5&offset=0', headers=headers)
     albums = response.json()
 
     '''
@@ -121,28 +122,17 @@ def get_saved_albums():
     key: album name
     value: list of artist(s)s
     '''
-    saved_albums = {}
+    recent_artists = []
 
-    num_added_albums = add_albums(albums, saved_albums)
+    # add the first artist from each of the 5 most "recent" albums
+    for item in albums["items"]:
+        recent_artists.append(item['album']['artists'][0]['id'])
 
-    '''
-    NOTE: per Spotify documentation, cannot get more than 50 saved albums at one time.
-    Thus, need to iterate over calls if user has more than 50 saved albums.
-    '''
-    if num_added_albums == 50:
-        # have to change offset as get more results
-        repetitions = 1
-        # as long as we are getting 50 albums in each response, want to make another call
-        while num_added_albums == 50:
-            response = requests.get(API_BASE_URL + 'me/albums?limit=50&offset=' + str(num_added_albums * repetitions), headers=headers)
-            albums = response.json()
-            num_added_albums = add_albums(albums, saved_albums)
-            repetitions += 1
+    # now, for each artist, want to get the similair artists, or something like that
 
-    # OK, at this point we are able to get all the albums that a user has saved to their library ..
-    # the next steps are going to be to get the artists? not really sure what to do from here tbh. 
+    print(recent_artists)
 
-    print(saved_albums)
+    
     return(jsonify(albums))
 
 
@@ -164,6 +154,16 @@ def refresh_token():
 if __name__ == '__main__':
     app.run(host="0.0.0.0", debug=True) 
 
+'''
+maybe just need to get the artits that have been listened to, since I am not going
+to be cross-referencing with the albums anyways
+
+so yeah, i can just loop through and get the artits, then get get similar artits multiple times
+for each of those artists
+then, once i have the final artits, i can just get the albums, put them together with the artists, 
+and then diplay them in some way that makes a lot of sense and what not. 
+'''
+
 
 '''
 a whole list of TODO
@@ -172,8 +172,11 @@ get this working on a real server (Render)
 make the pages look a little better? -- see Flask manual
 go through the artist route so that we can have good recs
 NOTE: i am actually going to want to get the artist IDs, not the names of the artists
+how can I speed up this program? Do I really need to grab every saved album? 
 '''
 
 # ALSO, the sight is super slow, and this is without even making the other calls .. how can I speed this whole
 # thing up ... also i am only going to want to look at all the albums once, i am not going to want to do that 
 # again tbh. 
+
+# TODO: add a note on how spotify defines "recent"
