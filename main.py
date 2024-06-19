@@ -3,7 +3,7 @@ import random
 import requests
 import urllib.parse
 from datetime import datetime
-from flask import Flask, redirect, request, jsonify, session
+from flask import Flask, redirect, request, jsonify, session, flash
 from dotenv import load_dotenv
 
 app = Flask(__name__)
@@ -93,8 +93,11 @@ def callback():
         # number of seconds from epoch + time until expiration 
         # this is necessary because we have to check if the access_token has expired
 
+        # NOTE: this does not work .. need to figure out how to build better, more complete solution
+        # flash("Login successful, generating recommendations ... ")
+
         return redirect('/saved-albums')
-    
+
 @app.route('/saved-albums')
 def get_saved_albums():
     '''
@@ -134,31 +137,64 @@ def get_saved_albums():
     for artist_id in recent_artists:
         response = requests.get(API_BASE_URL + 'artists/' + artist_id + "/related-artists", headers=headers)
         related_artists = response.json()
-        one_removed.append(related_artists["artists"][random.randint(4, 14)]["id"])
+        one_removed.append(related_artists["artists"][random.randint(4, 8)]["id"])
 
     # now, for each once-removed artist, want to get twice-removed artists through "related artist" call
     for artist_id in one_removed:
         response = requests.get(API_BASE_URL + 'artists/' + artist_id + "/related-artists", headers=headers)
         related_artists = response.json()
-        two_removed.append(related_artists["artists"][random.randint(4, 14)]["id"])
+        two_removed.append(related_artists["artists"][random.randint(4, 8)]["id"])
 
-    # then, for each twice-removed artist, want to get five thrice-removed artists
+    # then, for each twice-removed artist, want to get five three-time-removed artists
     for artist_id in two_removed:
         subset = []
         indices = random.sample(range(4, 14), 5)
         response = requests.get(API_BASE_URL + 'artists/' + artist_id + "/related-artists", headers=headers)
         related_artists = response.json()
         # TODO: change from "name" to "id"
-        subset.append(related_artists["artists"][indices[0]]["name"])
-        subset.append(related_artists["artists"][indices[1]]["name"])
-        subset.append(related_artists["artists"][indices[2]]["name"])
-        subset.append(related_artists["artists"][indices[3]]["name"])
-        subset.append(related_artists["artists"][indices[4]]["name"])
+        subset.append(related_artists["artists"][indices[0]]["id"])
+        subset.append(related_artists["artists"][indices[1]]["id"])
+        subset.append(related_artists["artists"][indices[2]]["id"])
+        subset.append(related_artists["artists"][indices[3]]["id"])
+        subset.append(related_artists["artists"][indices[4]]["id"])
         three_removed.append(subset)
-        
+
     print(three_removed)
-    # now, want to get ONE of fourth-eighth related artists
-    return(jsonify(recent_albums))
+
+    # let's just create a dict and then return the whole dict?
+    recs_dict = {}
+
+    # for each group of recommendations
+    for rec_group in three_removed:
+        # go through each specific id
+        for rec_id in rec_group:
+            # get the top tracks for that ID
+            response = requests.get(API_BASE_URL + 'artists/' + rec_id + '/top-tracks', headers=headers)
+            top_tracks = response.json()
+            # iterate through tracks until reach one that comes from album ... 
+            for track in top_tracks["tracks"]:
+                    if track['album']['album_type'] == "album": 
+                        # add to overall dictionary
+                        recs_dict[rec_id] = track['album']["name"]
+                        # NOTE: only want to add the first one, then no more ...
+                        break
+
+    # print that overall dict
+    # currently, key value pair between artist id and album name
+    print(recs_dict)
+
+    # NOTE: going to have to convert the ids back into names .. also going to have to display on the website somehow 
+
+    '''
+    so, at this point, three_removed is a list of 5 lists, that all contain the ids of 5 artitsts. 
+    so now, for each id within each list, going to want to get the top tracks. 
+    then, once i have the top tracks, want to traverse the list until I get to an album
+    then, return that album (but make sure that it is still associated with the artitst)
+    NOTE: what if an artist doesn't have any albums? What do we do at that point?
+
+    '''
+
+    return(jsonify(top_tracks))
 
 
 # TODO: have to actually write this endpoint
