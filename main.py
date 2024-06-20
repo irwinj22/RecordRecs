@@ -35,19 +35,20 @@ def add_albums(albums, album_dict):
 
     return album_count
  
+'''
+Welcome page, redirect to login.
+'''
 @app.route('/')
 def index():
-    '''
-    welcome page, redirect to login.
-    '''
     return "Welcome to RecordRecs <a href='/login'>Login with Spotify</a>"
     
+'''
+Login with Spotify account.
+'''
 @app.route('/login')
 def login():
-    '''
-    login with Spotify account.
-    '''
 
+    # what we need access to
     scope = "user-read-private user-read-email user-library-read"
 
     params = {
@@ -64,11 +65,11 @@ def login():
 
     return redirect(auth_url)
 
+'''
+User successfully logs in, get session info.
+'''
 @app.route("/callback")
 def callback():
-    '''
-    once user has successfully logged in.
-    '''
 
     # check for error
     if "error" in request.args: 
@@ -89,20 +90,24 @@ def callback():
 
         session['access_token'] = token_info['access_token']
         session["refresh_token"] = token_info['refresh_token']
-        session['expires_at'] = datetime.now().timestamp() + token_info['expires_in']
         # number of seconds from epoch + time until expiration 
         # this is necessary because we have to check if the access_token has expired
-
-        # NOTE: this does not work .. need to figure out how to build better, more complete solution
-        # flash("Login successful, generating recommendations ... ")
+        session['expires_at'] = datetime.now().timestamp() + token_info['expires_in']
 
         return redirect('/saved-albums')
 
+'''
+Get recently saved albums, make recommendations.
+Recommendation logic: 
+    1. For each recent album (last 5) in listener's library, get artist
+    2. For each album artist, get a "related" artist (as defined by Spotify)
+    3. For each related artist, get another related artist (now twice-removed)
+    4. For each twice-removed artist, get 5 related arists (each of these will be three-times removed from original artist)
+    5. Get a popular album for each of these five artists, totalling 25 albums (5 albums for each of 5 original albums in library)
+    BOOM
+'''
 @app.route('/saved-albums')
 def get_saved_albums():
-    '''
-    get all albums saved by user
-    '''
 
     # if access token does not exist
     if 'access_token' not in session:
@@ -117,12 +122,12 @@ def get_saved_albums():
         'Authorization': f"Bearer {session['access_token']}"
     }
 
-    # NOTE: only want to get 5 most recently-added projects and what not
+    # NOTE: only want to get 5 most recently-added projects
     response = requests.get(API_BASE_URL + 'me/albums?limit=5&offset=0', headers=headers)
     recent_albums = response.json()
 
-    # bunch of lists that I am going to use to store all sorts of info in
     recent_artists = []
+    recent_projects = []
     one_removed = []
     two_removed = []
     three_removed = []
@@ -130,16 +135,15 @@ def get_saved_albums():
     # add the first artist from each of the 5 most "recent" albums
     for item in recent_albums["items"]:
         recent_artists.append(item['album']['artists'][0]['id'])
+        recent_projects.append(tuple((item['album']['name'], item['album']['artists'][0]['name'])))
 
-    # TODO: lots of duplication that can be removed
-
-    # now, for each recent artist, want to get once-removed artists through "related artist" call
+    # now, for each recent artist, want to get once-removed artists with "related artist" call
     for artist_id in recent_artists:
         response = requests.get(API_BASE_URL + 'artists/' + artist_id + "/related-artists", headers=headers)
         related_artists = response.json()
         one_removed.append(related_artists["artists"][random.randint(4, 8)]["id"])
 
-    # now, for each once-removed artist, want to get twice-removed artists through "related artist" call
+    # now, for each once-removed artist, want to get twice-removed artists with "related artist" call (again)
     for artist_id in one_removed:
         response = requests.get(API_BASE_URL + 'artists/' + artist_id + "/related-artists", headers=headers)
         related_artists = response.json()
@@ -151,7 +155,6 @@ def get_saved_albums():
         indices = random.sample(range(4, 14), 5)
         response = requests.get(API_BASE_URL + 'artists/' + artist_id + "/related-artists", headers=headers)
         related_artists = response.json()
-        # TODO: change from "name" to "id"
         subset.append(related_artists["artists"][indices[0]]["id"])
         subset.append(related_artists["artists"][indices[1]]["id"])
         subset.append(related_artists["artists"][indices[2]]["id"])
@@ -161,41 +164,44 @@ def get_saved_albums():
 
     print(three_removed)
 
-    # let's just create a dict and then return the whole dict?
-    recs_dict = {}
+    # for printing purposes
+    tuple_index = 0
 
     # for each group of recommendations
     for rec_group in three_removed:
-        # go through each specific id
+        # NOTE: this is also just for printing purposes
+        num = 1
+        # for each specific id
         for rec_id in rec_group:
             # get the top tracks for that ID
             response = requests.get(API_BASE_URL + 'artists/' + rec_id + '/top-tracks', headers=headers)
             top_tracks = response.json()
-            # iterate through tracks until reach one that comes from album ... 
-            for track in top_tracks["tracks"]:
-                    if track['album']['album_type'] == "album": 
-                        # add to overall dictionary
-                        recs_dict[rec_id] = track['album']["name"]
+            # artist may not have released 5 tracks, need to account for that
+            released_tracks = len(top_tracks["tracks"])
+            possible_tracks = min(released_tracks, 5)
+            track_indices = random.sample(range(0, possible_tracks), possible_tracks)
+            # go through each of the five top songs in random order, 
+            # as soon as we find song that belongs to an album, add that album ...
+            for index in track_indices: 
+                if top_tracks["tracks"][index]['album']['album_type'] == 'album':
+                        # NOTE: this is just for printing and will have to be changed for the actual program
+                        if num == 1:
+                            print("")
+                            print("Because you enjoy " + recent_projects[tuple_index][0] + " by " + recent_projects[tuple_index][1] + ", please consider:")
+                            tuple_index += 1
+                        print(str(num) + ". " + top_tracks["tracks"][index]['album']['artists'][0]['name'] + " : " + top_tracks["tracks"][index]['album']["name"])
                         # NOTE: only want to add the first one, then no more ...
+                        num += 1
                         break
+                # if none of top tracks belong to album (ie, artist has not released one), 
+                # then just recommend the "last" track as an album 
+                elif index == track_indices[possible_tracks - 1]:
+                    print(str(num) + ". " + top_tracks["tracks"][index]['album']['artists'][0]['name'] + " : " + top_tracks["tracks"][index]['album']["name"])
+                    print("NOTE: THIS IS A SINGLE !!")
 
-    # print that overall dict
-    # currently, key value pair between artist id and album name
-    print(recs_dict)
+    return(jsonify(recent_albums))
 
-    # NOTE: going to have to convert the ids back into names .. also going to have to display on the website somehow 
-
-    '''
-    so, at this point, three_removed is a list of 5 lists, that all contain the ids of 5 artitsts. 
-    so now, for each id within each list, going to want to get the top tracks. 
-    then, once i have the top tracks, want to traverse the list until I get to an album
-    then, return that album (but make sure that it is still associated with the artitst)
-    NOTE: what if an artist doesn't have any albums? What do we do at that point?
-
-    '''
-
-    return(jsonify(top_tracks))
-
+# NOTE: oh yeah, can just store as a list of tuples
 
 # TODO: have to actually write this endpoint
 @app.route('/refresh-token')
@@ -219,10 +225,9 @@ if __name__ == '__main__':
 a whole list of TODO
 re-organize so that the endpoints are in different files
 get this working on a real server (Render)
-make the pages look a little better? -- see Flask manual
-go through the artist route so that we can have good recs
-NOTE: i am actually going to want to get the artist IDs, not the names of the artists
-how can I speed up this program? Do I really need to grab every saved album? 
+make the pages look a LOT better? -- see Flask manual
+look for ways to speed up the program
+loading page when we are generating the recs?
+explain to user how spotify defines "recent" for albums (both added and listened to)
+remove redundant code
 '''
-
-# TODO: add a note on how spotify defines "recent" for the albums
