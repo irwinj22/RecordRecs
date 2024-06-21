@@ -122,9 +122,19 @@ def get_saved_albums():
         'Authorization': f"Bearer {session['access_token']}"
     }
 
+    # TODO make this better, more specific
     # NOTE: only want to get 5 most recently-added projects
-    response = requests.get(API_BASE_URL + 'me/albums?limit=5&offset=0', headers=headers)
-    recent_albums = response.json()
+    try: 
+        response = requests.get(API_BASE_URL + 'me/albums?limit=5&offset=0', headers=headers)
+        recent_albums = response.json()
+    except: 
+        # ex: there are no albums saved
+        print(f"Error returned!!!")
+        return "There is an error!!"
+    
+    # actually, should just have length 0, there is no reason that an error should be raised if no albums are saved ...
+    # why can't it work with someone else's account
+    # TODO: if length is 0 though, should probably say that you don't have anything saved!
 
     recent_artists = []
     recent_projects = []
@@ -132,7 +142,7 @@ def get_saved_albums():
     two_removed = []
     three_removed = []
 
-    # add the first artist from each of the 5 most "recent" albums
+    # add the first artist from each of the 5 (at most) most "recent" albums
     for item in recent_albums["items"]:
         recent_artists.append(item['album']['artists'][0]['id'])
         recent_projects.append(tuple((item['album']['name'], item['album']['artists'][0]['name'])))
@@ -141,20 +151,26 @@ def get_saved_albums():
     for artist_id in recent_artists:
         response = requests.get(API_BASE_URL + 'artists/' + artist_id + "/related-artists", headers=headers)
         related_artists = response.json()
-        one_removed.append(related_artists["artists"][random.randint(4, 8)]["id"])
+        one_removed.append(related_artists["artists"][random.randint(2, 6)]["id"])
 
     # now, for each once-removed artist, want to get twice-removed artists with "related artist" call (again)
     for artist_id in one_removed:
         response = requests.get(API_BASE_URL + 'artists/' + artist_id + "/related-artists", headers=headers)
         related_artists = response.json()
-        two_removed.append(related_artists["artists"][random.randint(4, 8)]["id"])
+        two_removed.append(related_artists["artists"][random.randint(2, 6)]["id"])
 
     # then, for each twice-removed artist, want to get five three-time-removed artists
+    # NOTE: might want to go back to once removed here, if twice removed is too much? 
     for artist_id in two_removed:
         subset = []
-        indices = random.sample(range(4, 14), 5)
         response = requests.get(API_BASE_URL + 'artists/' + artist_id + "/related-artists", headers=headers)
         related_artists = response.json()
+        num_related = len(related_artists["artists"])
+        num_indices = min(num_related, 5)
+        # TODO: implement this, if needed
+        indices = random.sample(range(0, 5), 5)
+        # then should iterate through all indices, because we don't know how many are going to be generated, right? 
+        # NOTE: because here we are still assuming that we are getting 5 artists and what not
         subset.append(related_artists["artists"][indices[0]]["id"])
         subset.append(related_artists["artists"][indices[1]]["id"])
         subset.append(related_artists["artists"][indices[2]]["id"])
@@ -187,7 +203,7 @@ def get_saved_albums():
                         # NOTE: this is just for printing and will have to be changed for the actual program
                         if num == 1:
                             print("")
-                            print("Because you enjoy " + recent_projects[tuple_index][0] + " by " + recent_projects[tuple_index][1] + ", please consider:")
+                            print("Because you enjoy " + recent_projects[tuple_index][0] + " by " + recent_projects[tuple_index][1] + ", we think you might like:")
                             tuple_index += 1
                         print(str(num) + ". " + top_tracks["tracks"][index]['album']['artists'][0]['name'] + " : " + top_tracks["tracks"][index]['album']["name"])
                         # NOTE: only want to add the first one, then no more ...
@@ -200,6 +216,14 @@ def get_saved_albums():
                     print("NOTE: THIS IS A SINGLE !!")
 
     return(jsonify(recent_albums))
+
+# TODO: going to have to figure out how to do all of this storage so that I can give the info back in the right way. 
+# also, once i get the album id, i am going to have to make another call so that I can get the correct image
+# and then am going to have to print the name, artist name, and all of that jazz
+# so yeah, i think returning this information instead of just pretty printing would be the next logical step
+
+# NOTE: I think that we can keep getting stuck down the same rabbit hole of recommendations for some reason ..
+# not sure how, but it would be nice if we could keep going to different-ish re
 
 # NOTE: oh yeah, can just store as a list of tuples
 
@@ -230,4 +254,17 @@ look for ways to speed up the program
 loading page when we are generating the recs?
 explain to user how spotify defines "recent" for albums (both added and listened to)
 remove redundant code
+should add try/except for all of the requests that I am making
+check the mins and maxes of what the indices can be ... sometimes going out of range?
+why can I not log Mom in?
+'''
+
+# TODO: have to make sure that recommendation is NOT the same as original album!
+
+# what if i just suggest all the albums in a panel of random order, and not becuase of the album that they are "coming from"
+# sometimes I am getting good recs, but other times it does just kind of seem like i am getting random artists within the "genre"
+# that they are associated with
+
+'''
+
 '''
