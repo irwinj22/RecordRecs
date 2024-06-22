@@ -10,31 +10,13 @@ app = Flask(__name__)
 load_dotenv()
 
 app.secret_key = os.getenv('SECRET_KEY')
-
 CLIENT_ID = os.getenv('CLIENT_ID')
 CLIENT_SECRET =os.getenv('CLIENT_SECRET')
 REDIRECT_URI = os.getenv('REDIRECT_URI')
-
 AUTH_URL = os.getenv('AUTH_URL')
 TOKEN_URL = os.getenv('TOKEN_URL')
 API_BASE_URL = os.getenv('API_BASE_URL')
 
-'''
-Given albums (json) and dictionary of album/artist ids, add the new albums/artists to dict.
-Return the number of albums that were added.
-'''
-def add_albums(albums, album_dict):
-    album_count = 0
-
-    for item in albums["items"]:
-        item_artists = []
-        for artist in item['album']['artists']:
-            item_artists.append(artist['id'])
-        album_dict[item["album"]["id"]] = item_artists
-        album_count += 1
-
-    return album_count
- 
 '''
 Welcome page, redirect to login.
 '''
@@ -94,21 +76,21 @@ def callback():
         # this is necessary because we have to check if the access_token has expired
         session['expires_at'] = datetime.now().timestamp() + token_info['expires_in']
 
-        return redirect('/saved-albums')
+        return redirect('/track-things')
+
 
 '''
 Get recently saved albums, make recommendations.
-Recommendation logic: 
-    1. For each recent album (last 5) in listener's library, get artist
-    2. For each album artist, get a "related" artist (as defined by Spotify)
-    3. For each related artist, get another related artist (now twice-removed)
-    4. For each twice-removed artist, get 5 related arists (each of these will be three-times removed from original artist)
-    5. Get a popular album for each of these five artists, totalling 25 albums (5 albums for each of 5 original albums in library)
-    BOOM
+    1. Get each of the five most recent albums in user's library.
+    2. Now, for each album: 
+        2a. Get the average statistics of songs.
+        2b. Use /tracks/recommendations endpoint to get song recommendations, based on averages.
+        2c. Iterate through songs, find the fist 20 albums that they belong to. 
+        2d. Return randomly from this selection of 20 albums.
+    3. Repeat 2. for all five albums. 
 '''
-@app.route('/saved-albums')
-def get_saved_albums():
-
+@app.route('/track-things')
+def track_things():
     # if access token does not exist
     if 'access_token' not in session:
         return redirect("/login")
@@ -122,110 +104,130 @@ def get_saved_albums():
         'Authorization': f"Bearer {session['access_token']}"
     }
 
-    # TODO make this better, more specific
-    # NOTE: only want to get 5 most recently-added projects
+    # TODO: better error-catching
     try: 
+        # get five most recently-listend to projects
         response = requests.get(API_BASE_URL + 'me/albums?limit=5&offset=0', headers=headers)
         recent_albums = response.json()
     except: 
-        # ex: there are no albums saved
         print(f"Error returned!!!")
         return "There is an error!!"
-    
-    # actually, should just have length 0, there is no reason that an error should be raised if no albums are saved ...
-    # why can't it work with someone else's account
-    # TODO: if length is 0 though, should probably say that you don't have anything saved!
 
-    recent_artists = []
-    recent_projects = []
-    one_removed = []
-    two_removed = []
-    three_removed = []
+    # list of tuples 
+    # first value is album id
+    # second value is artist id
+    # third value is comma-seperated string containing each song_id within album
+    recent_albs_songs = []
 
-    # add the first artist from each of the 5 (at most) most "recent" albums
-    for item in recent_albums["items"]:
-        recent_artists.append(item['album']['artists'][0]['id'])
-        recent_projects.append(tuple((item['album']['name'], item['album']['artists'][0]['name'])))
+    # go through each of five most recent albums
+    for album in recent_albums["items"]:
+        # get the first artist id
+        artist_id = album["album"]["artists"][0]["id"]
+        # each album must have at least one song_id
+        # initiate string with that song_id
+        track_ids_str = album["album"]["tracks"]["items"][0]["id"]
+        # iterate through the rest of the song_ids, adding to string
+        for track in album["album"]["tracks"]["items"][1:]:
+            track_ids_str = track_ids_str + "," + track["id"]
+        # finally, append completed tuple to list of tuples
+        recent_albs_songs.append(tuple((album["album"]["id"], artist_id, track_ids_str)))
 
-    # now, for each recent artist, want to get once-removed artists with "related artist" call
-    for artist_id in recent_artists:
-        response = requests.get(API_BASE_URL + 'artists/' + artist_id + "/related-artists", headers=headers)
-        related_artists = response.json()
-        one_removed.append(related_artists["artists"][random.randint(2, 6)]["id"])
+    print(recent_albs_songs)
 
-    # now, for each once-removed artist, want to get twice-removed artists with "related artist" call (again)
-    for artist_id in one_removed:
-        response = requests.get(API_BASE_URL + 'artists/' + artist_id + "/related-artists", headers=headers)
-        related_artists = response.json()
-        two_removed.append(related_artists["artists"][random.randint(2, 6)]["id"])
+    # iterate through each tuple of list
+    for entry in recent_albs_songs:
+        saved_album_id = entry[0]
+        saved_artist_id = entry[1]
+        song_ids = entry[2]
+        # TODO: raise a better error
+        try: 
+            # get the audio features of every song on the album  
+            response = requests.get(API_BASE_URL + 'audio-features?ids=' + song_ids, headers=headers)
+            songs_info = response.json()
+        except: 
+            print(f"Error returned!!!")
+            return "There is an error!!"
+        
+        # get the average statistics of each song songs on the album
+        total_acousticness = 0
+        total_danceability = 0
+        total_instrumentalness = 0
+        total_speechiness = 0
+        total_valence = 0
 
-    # then, for each twice-removed artist, want to get five three-time-removed artists
-    # NOTE: might want to go back to once removed here, if twice removed is too much? 
-    for artist_id in two_removed:
-        subset = []
-        response = requests.get(API_BASE_URL + 'artists/' + artist_id + "/related-artists", headers=headers)
-        related_artists = response.json()
-        num_related = len(related_artists["artists"])
-        num_indices = min(num_related, 5)
-        # TODO: implement this, if needed
-        indices = random.sample(range(0, 5), 5)
-        # then should iterate through all indices, because we don't know how many are going to be generated, right? 
-        # NOTE: because here we are still assuming that we are getting 5 artists and what not
-        subset.append(related_artists["artists"][indices[0]]["id"])
-        subset.append(related_artists["artists"][indices[1]]["id"])
-        subset.append(related_artists["artists"][indices[2]]["id"])
-        subset.append(related_artists["artists"][indices[3]]["id"])
-        subset.append(related_artists["artists"][indices[4]]["id"])
-        three_removed.append(subset)
+        num_tracks = len(songs_info["audio_features"])
 
-    print(three_removed)
+        for song in songs_info["audio_features"]:
+            # print(song)
+            total_acousticness += song['acousticness']
+            total_danceability += song['danceability']
+            total_instrumentalness += song['instrumentalness']
+            total_speechiness += song['speechiness']
+            total_valence += song['valence']
 
-    # for printing purposes
-    tuple_index = 0
+        avg_acousticness = total_acousticness / num_tracks
+        avg_danceability = total_danceability / num_tracks
+        avg_instrumentalness = total_instrumentalness / num_tracks
+        avg_speechiness = total_speechiness / num_tracks
+        avg_valence = total_valence / num_tracks
 
-    # for each group of recommendations
-    for rec_group in three_removed:
-        # NOTE: this is also just for printing purposes
-        num = 1
-        # for each specific id
-        for rec_id in rec_group:
-            # get the top tracks for that ID
-            response = requests.get(API_BASE_URL + 'artists/' + rec_id + '/top-tracks', headers=headers)
-            top_tracks = response.json()
-            # artist may not have released 5 tracks, need to account for that
-            released_tracks = len(top_tracks["tracks"])
-            possible_tracks = min(released_tracks, 5)
-            track_indices = random.sample(range(0, possible_tracks), possible_tracks)
-            # go through each of the five top songs in random order, 
-            # as soon as we find song that belongs to an album, add that album ...
-            for index in track_indices: 
-                if top_tracks["tracks"][index]['album']['album_type'] == 'album':
-                        # NOTE: this is just for printing and will have to be changed for the actual program
-                        if num == 1:
-                            print("")
-                            print("Because you enjoy " + recent_projects[tuple_index][0] + " by " + recent_projects[tuple_index][1] + ", we think you might like:")
-                            tuple_index += 1
-                        print(str(num) + ". " + top_tracks["tracks"][index]['album']['artists'][0]['name'] + " : " + top_tracks["tracks"][index]['album']["name"])
-                        # NOTE: only want to add the first one, then no more ...
-                        num += 1
-                        break
-                # if none of top tracks belong to album (ie, artist has not released one), 
-                # then just recommend the "last" track as an album 
-                elif index == track_indices[possible_tracks - 1]:
-                    print(str(num) + ". " + top_tracks["tracks"][index]['album']['artists'][0]['name'] + " : " + top_tracks["tracks"][index]['album']["name"])
-                    print("NOTE: THIS IS A SINGLE !!")
+        # now, use these statistics to generate song recommendations
+        request_str = ("recommendations?seed_artists=" + saved_artist_id + "&target_acousticness=" + 
+                       str(avg_acousticness) + "&target_danceability=" + str(avg_danceability) + 
+                       "&target_instrumentalness=" + str(avg_instrumentalness) + "&target_speechiness=" + 
+                       str(avg_speechiness) + "&target_valence=" + str(avg_valence))
+        try: 
+            # get the song recommendations
+            response = requests.get(API_BASE_URL + request_str, headers=headers)
+            songs_info = response.json()
+        except: 
+            print(f"Error returned!!!")
+            return "There is an error!!"
+        
+        # list of tuples, storing all possible recomendations (up to 20)
+        # first value is recommended album_id
+        # second value is recommended artist_id
+        rec_albums_info = []
+        # list of album ids so don't recommend same album twice
+        rec_album_ids = []
+        albums_added = 0 
+        # now we have song info, get albums that they belong to
+        for track in songs_info["tracks"]:
+            rec_album_id = track['album']["id"]
+            # want to recommend a NEW album
+            if track["album"]["album_type"] == "ALBUM" and rec_album_id != saved_album_id and rec_album_id not in rec_album_ids:
+                # add album_id, first artist_id
+                # TODO: change from "name" to "id" for actual returns
+                rec_albums_info.append(tuple((track["album"]["name"], track["album"]["artists"][0]["name"])))
+                rec_album_ids.append(rec_album_id)
+                albums_added += 1
+            # stop once we reach 20
+            if albums_added == 20:
+                break
 
-    return(jsonify(recent_albums))
+        # now, know that we have 20 saved albums, let's choose from those randomly
+        # NOTE: we are assuming that five are going to be generated, which may not always be the case
+        indices = random.sample(range(0, albums_added), 5)
 
-# TODO: going to have to figure out how to do all of this storage so that I can give the info back in the right way. 
-# also, once i get the album id, i am going to have to make another call so that I can get the correct image
-# and then am going to have to print the name, artist name, and all of that jazz
-# so yeah, i think returning this information instead of just pretty printing would be the next logical step
+        # NOTE: this will be removed 
+        try: 
+            # get the song recommendations
+            response = requests.get(API_BASE_URL + "albums/" + saved_album_id, headers=headers)
+            album_name = response.json()
+        except: 
+            print(f"Error returned!!!")
+            return "There is an error!!"
+        
+        album_name = album_name["name"]
 
-# NOTE: I think that we can keep getting stuck down the same rabbit hole of recommendations for some reason ..
-# not sure how, but it would be nice if we could keep going to different-ish re
+        # NOTE: just printing for now, but will eventually change to return to website
+        print("Because you listend to " + album_name + ", we think you might enjoy:")
+        for index in indices:
+            print(rec_albums_info[index][0] + " by " + rec_albums_info[index][1])
+        
+        print("")
 
-# NOTE: oh yeah, can just store as a list of tuples
+    return(jsonify(songs_info))
 
 # TODO: have to actually write this endpoint
 @app.route('/refresh-token')
@@ -253,18 +255,5 @@ make the pages look a LOT better? -- see Flask manual
 look for ways to speed up the program
 loading page when we are generating the recs?
 explain to user how spotify defines "recent" for albums (both added and listened to)
-remove redundant code
-should add try/except for all of the requests that I am making
-check the mins and maxes of what the indices can be ... sometimes going out of range?
 why can I not log Mom in?
-'''
-
-# TODO: have to make sure that recommendation is NOT the same as original album!
-
-# what if i just suggest all the albums in a panel of random order, and not becuase of the album that they are "coming from"
-# sometimes I am getting good recs, but other times it does just kind of seem like i am getting random artists within the "genre"
-# that they are associated with
-
-'''
-
 '''
