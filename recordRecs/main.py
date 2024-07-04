@@ -3,8 +3,8 @@ import random
 import requests
 import urllib.parse
 from datetime import datetime
-from flask import Flask, redirect, request, jsonify, session, flash
 from dotenv import load_dotenv
+from flask import Flask, redirect, request, jsonify, session, flash
 
 app = Flask(__name__)
 load_dotenv()
@@ -17,12 +17,6 @@ AUTH_URL = os.getenv('AUTH_URL')
 TOKEN_URL = os.getenv('TOKEN_URL')
 API_BASE_URL = os.getenv('API_BASE_URL')
 
-'''
-Welcome page, redirect to login.
-'''
-@app.route('/')
-def index():
-    return "Welcome to RecordRecs <a href='/login'>Login with Spotify</a>"
     
 '''
 Login with Spotify account.
@@ -30,9 +24,8 @@ Login with Spotify account.
 @app.route('/login')
 def login():
 
-    # what we need access to
+    # what needs to be accessed
     scope = "user-read-private user-read-email user-library-read"
-
     params = {
         'client_id' : CLIENT_ID,
         'response_type' : 'code',
@@ -62,7 +55,7 @@ def callback():
         req_body = {
             'code' : request.args['code'], 
             'grant_type' : 'authorization_code',
-            'redirect_uri' : REDIRECT_URI,
+            'redirect_uri' : REDIRECT_URI + "/callback",
             'client_id' : CLIENT_ID, 
             'client_secret' : CLIENT_SECRET
         }
@@ -148,7 +141,7 @@ def track_things():
             print(f"Error returned!!!")
             return "There is an error!!"
         
-        # get the average statistics of each song songs on the album
+        # get the average statistics of each song on the album
         total_acousticness = 0
         total_danceability = 0
         total_instrumentalness = 0
@@ -206,7 +199,7 @@ def track_things():
                 break
 
         # now, know that we have 20 saved albums, let's choose from those randomly
-        # NOTE: we are assuming that five are going to be generated, which may not always be the case
+        # NOTE: we are assuming that at least five are going to be generated, which may not always be the case
         indices = random.sample(range(0, albums_added), 5)
 
         # NOTE: this will be removed 
@@ -249,7 +242,8 @@ if __name__ == '__main__':
 
 '''
 a whole list of TODO
-re-organize so that the endpoints are in different files
+re-organize so that the endpoints are in different files (?) 
+--> depends on how large the file gets, i feel like ~300 lines with comments isn't too bad
 get this working on a real server (Render)
 make the pages look a LOT better? -- see Flask manual
 look for ways to speed up the program
