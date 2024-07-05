@@ -1,21 +1,36 @@
 <!DOCTYPE html> 
 <html lang = "en">
 <head>
-    <meta charset = "UTF-8">
-    <title> First Flask App</title>
 </head> 
-<body>
-    <pre>
-        Welcome to RecordRecs! The website with recs that push your listening!
-        <a href='/auth/login'>Login to RecordRecs with Spotify!</a>
-    </pre>
-</body>
+    <body>
+        <header> 
+            <h1> 
+                RecordRecs
+            </h1>
+        </header>
+        <section>
+            <p>
+                Welcome to RecordRecs. <br> 
+                RecordRecs helps Spotify users discover new albums.<br>
+                It’s an alternative to the tedious process of fumbling through playlists, songs, and concerts to find a new project. <br>
+                Just login with your Spotify account and receive a curated collection of albums, inspired by your recent listening. <br>
+                <br>
+                <a href='/auth/login'>Get recommendations.</a>
+                <br>
+                <!-- TODO: determine if I want hyperlink or button (leaning hyperlink tbh)-->
+                <button> Get recommendations </button>
+            </p>
+        </section>
+        <footer>
+            Created with <a href='https://developer.spotify.com/documentation/web-api'> Spotify Web API</a> <br>
+            (c) RecordRecs <br>
+            (c) maven 
+        </footer>
+    </body>
 </html>
 
 
 <!-- 
- Ok, I can get the link, but what the link is pointing to is not running for some reason 
- well, tbh, i can just get rid of the structure and go back to what I was doing, if I wanted to 
- do that for some reason 
- i think it would be best to try to implement the structure first though tbh.
- -->
+TODO: include an image of the maven logo
+NOTE: do i also want to add a new logo for the webpage? 
+-->
