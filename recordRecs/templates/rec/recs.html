@@ -5,8 +5,12 @@
     <title>RecordRecs</title>
 </head> 
 <body>
-    <pre>
-        {{ output }}
-    </pre>
+    {% for item in content %}
+        {% if item.type == 'text' %}
+            <p>{{ item.data | replace("/n", "<br>") | safe }}</p>
+        {% elif item.type == 'image' %}
+            <img src="{{ item.data }}" alt="Image">
+        {% endif %}
+    {% endfor %}
 </body>
 </html>

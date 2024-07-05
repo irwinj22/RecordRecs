@@ -72,6 +72,7 @@ def recs():
         recent_albs_songs.append(tuple((album["album"]["id"], artist_id, track_ids_str)))
 
     # print(recent_albs_songs)
+    content = []
 
     # iterate through each tuple of list
     for entry in recent_albs_songs:
@@ -122,9 +123,12 @@ def recs():
             print(f"Error returned!!!")
             return "There is an error!!"
         
+        # NOTE: have to get the images of the albums in this little thing as well from what i understand
+        
         # list of tuples, storing all possible recomendations (up to 20)
         # first value is recommended album_id
         # second value is recommended artist_id
+        # third value is link to album image
         rec_albums_info = []
         # list of album ids so don't recommend same album twice
         rec_album_ids = []
@@ -136,7 +140,7 @@ def recs():
             if track["album"]["album_type"] == "ALBUM" and rec_album_id != saved_album_id and rec_album_id not in rec_album_ids:
                 # add album_id, first artist_id
                 # TODO: change from "name" to "id" for actual returns
-                rec_albums_info.append(tuple((track["album"]["name"], track["album"]["artists"][0]["name"])))
+                rec_albums_info.append(tuple((track["album"]["name"], track["album"]["artists"][0]["name"], track["album"]["images"][1]["url"])))
                 rec_album_ids.append(rec_album_id)
                 albums_added += 1
             # stop once we reach 20
@@ -147,23 +151,32 @@ def recs():
         # NOTE: we are assuming that at least five are going to be generated, which may not always be the case
         indices = random.sample(range(0, albums_added), 5)
 
-        # NOTE: this will be removed 
+        # NOTE: this will be removed, just getting the name for now (I think)
+        # NOTE: can get the images from here, so this might actually be a good idea tbh ...
+        # have to store the original album/artist name, then have to get the image for each album
+        # that we are looking through as well for some reason I think tbh.
         try: 
             # get the song recommendations
             response = requests.get(API_BASE_URL + "albums/" + saved_album_id, headers=headers)
-            album_name = response.json()
+            album_info = response.json()
         except: 
             print(f"Error returned!!!")
             return "There is an error!!"
         
-        album_name = album_name["name"]
+        album_name = album_info["name"]
+        artist_name = album_info["artists"][0]["name"]
 
         # NOTE: just printing for now, but will eventually change to return to website
-        print("Because you listend to " + album_name + ", we think you might enjoy:")
-        for index in indices:
-            print(rec_albums_info[index][0] + " by " + rec_albums_info[index][1])
+        # print("Because you listend to " + album_name + " by " + artist_name + ", we think you might enjoy:")
+        # for index in indices:
+            # print(rec_albums_info[index][0] + " by " + rec_albums_info[index][1])
         
-        print("")
+        # print("")
+
+        content.append({"type":"text", "data":"<b>Because you listend to " + album_name + " by " + artist_name + ", we think you might enjoy:</b>"})
+        for index in indices: 
+            content.append({"type":"image", "data":rec_albums_info[index][2]})
+            content.append({"type":"text", "data":rec_albums_info[index][0] + " by " + rec_albums_info[index][1]})
 
     # reset stdout to original state
     sys.stdout = sys.__stdout__
@@ -171,10 +184,18 @@ def recs():
     output = captured_output.getvalue()
 
     # return(jsonify(songs_info))
-    return render_template('rec/recs.html', output=output)
-
+    return render_template('rec/recs.html', content=content)
 # TODO: create the waiting page that comes in between the first click and the input generation 
 # (or something like that and what not and all of that jazz don't talk to me bruh I am the man and what not.)
 # Ok so as it turns out the loading thing is kind of complicated so i may deal with the later tbh
 # should also determine what I want the general style of the webpage to be and what not.
-# TODO: get all of this console output out onto the html page (somehow)
+
+
+'''
+can just create a list of "content", and then return that at the end of the text of something like that
+not sure if this is the best way to go about things but it does seem efficient and what not.
+so yeah i know exactly the format of what i am going to be returning every time, 
+so i can just append to content as needed, and then return content at the end with the return statement and what not. 
+
+it would be cool if you could also click on the images and get to the spotify page that hosts them and what not. 
+'''
