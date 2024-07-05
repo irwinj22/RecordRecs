@@ -1,6 +1,4 @@
 import os
-import io
-import sys
 import random
 import requests
 from datetime import datetime
@@ -44,13 +42,6 @@ def recs():
     except: 
         print(f"Error returned!!!")
         return "There is an error!!"
-    
-
-    # NOTE: capturing output and all of that jazz.
-    # create StringIO object to capture output
-    captured_output = io.StringIO()
-    # redirect stdout to the StringIO object
-    sys.stdout = captured_output
 
     # list of tuples 
     # first value is album id
@@ -149,7 +140,7 @@ def recs():
 
         # now, know that we have 20 saved albums, let's choose from those randomly
         # NOTE: we are assuming that at least five are going to be generated, which may not always be the case
-        indices = random.sample(range(0, albums_added), 5)
+        indices = random.sample(range(0, albums_added), 6)
 
         # NOTE: this will be removed, just getting the name for now (I think)
         # NOTE: can get the images from here, so this might actually be a good idea tbh ...
@@ -177,11 +168,6 @@ def recs():
         for index in indices: 
             content.append({"type":"image", "data":rec_albums_info[index][2]})
             content.append({"type":"text", "data":rec_albums_info[index][0] + " by " + rec_albums_info[index][1]})
-
-    # reset stdout to original state
-    sys.stdout = sys.__stdout__
-    # get the captured output
-    output = captured_output.getvalue()
 
     # return(jsonify(songs_info))
     return render_template('rec/recs.html', content=content)
