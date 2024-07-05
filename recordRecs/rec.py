@@ -1,4 +1,6 @@
 import os
+import io
+import sys
 import random
 import requests
 from datetime import datetime
@@ -42,6 +44,13 @@ def recs():
     except: 
         print(f"Error returned!!!")
         return "There is an error!!"
+    
+
+    # NOTE: capturing output and all of that jazz.
+    # create StringIO object to capture output
+    captured_output = io.StringIO()
+    # redirect stdout to the StringIO object
+    sys.stdout = captured_output
 
     # list of tuples 
     # first value is album id
@@ -62,7 +71,7 @@ def recs():
         # finally, append completed tuple to list of tuples
         recent_albs_songs.append(tuple((album["album"]["id"], artist_id, track_ids_str)))
 
-    print(recent_albs_songs)
+    # print(recent_albs_songs)
 
     # iterate through each tuple of list
     for entry in recent_albs_songs:
@@ -156,8 +165,13 @@ def recs():
         
         print("")
 
+    # reset stdout to original state
+    sys.stdout = sys.__stdout__
+    # get the captured output
+    output = captured_output.getvalue()
+
     # return(jsonify(songs_info))
-    return render_template('rec/recs.html')
+    return render_template('rec/recs.html', output=output)
 
 # TODO: create the waiting page that comes in between the first click and the input generation 
 # (or something like that and what not and all of that jazz don't talk to me bruh I am the man and what not.)
