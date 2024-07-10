@@ -47,6 +47,7 @@ def recs():
     # first value is album id
     # second value is artist id
     # third value is comma-seperated string containing each song_id within album
+    # TODO: fourth value is album link
     recent_albs_songs = []
 
     # go through each of five most recent albums
@@ -59,6 +60,8 @@ def recs():
         # iterate through the rest of the song_ids, adding to string
         for track in album["album"]["tracks"]["items"][1:]:
             track_ids_str = track_ids_str + "," + track["id"]
+        # get album link
+        # album_link = "haha"
         # finally, append completed tuple to list of tuples
         recent_albs_songs.append(tuple((album["album"]["id"], artist_id, track_ids_str)))
 
@@ -117,9 +120,10 @@ def recs():
         # NOTE: have to get the images of the albums in this little thing as well from what i understand
         
         # list of tuples, storing all possible recomendations (up to 20)
-        # first value is recommended album_id
-        # second value is recommended artist_id
+        # first value is recommended album name
+        # second value is recommended artist name
         # third value is link to album image
+        # fourth value is link to album in spotify player
         rec_albums_info = []
         # list of album ids so don't recommend same album twice
         rec_album_ids = []
@@ -129,9 +133,13 @@ def recs():
             rec_album_id = track['album']["id"]
             # want to recommend a NEW album
             if track["album"]["album_type"] == "ALBUM" and rec_album_id != saved_album_id and rec_album_id not in rec_album_ids:
-                # add album_id, first artist_id
+                album_name = track["album"]["name"]
+                artist_name = track["album"]["artists"][0]["name"]
                 # TODO: change from "name" to "id" for actual returns
-                rec_albums_info.append(tuple((track["album"]["name"], track["album"]["artists"][0]["name"], track["album"]["images"][1]["url"])))
+                album_image = track["album"]["images"][1]["url"]
+                album_link = track["album"]["external_urls"].get("spotify") + "?" + track["album"]["uri"] + "&go=1"
+                print("album_link: ", album_link)
+                rec_albums_info.append(tuple((album_name, artist_name, album_image, album_link)))
                 rec_album_ids.append(rec_album_id)
                 albums_added += 1
             # stop once we reach 20
@@ -142,8 +150,6 @@ def recs():
         # NOTE: we are assuming that at least five are going to be generated, which may not always be the case
         indices = random.sample(range(0, albums_added), 6)
 
-        # NOTE: this will be removed, just getting the name for now (I think)
-        # NOTE: can get the images from here, so this might actually be a good idea tbh ...
         # have to store the original album/artist name, then have to get the image for each album
         # that we are looking through as well for some reason I think tbh.
         try: 
@@ -163,13 +169,14 @@ def recs():
             # print(rec_albums_info[index][0] + " by " + rec_albums_info[index][1])
         
         # print("")
-
         content.append({"type":"text", "data":"<b>Because you listend to " + album_name + " by " + artist_name + ", we think you might enjoy:</b>"})
         for index in indices: 
-            content.append({"type":"image", "data":rec_albums_info[index][2]})
+            image_html = f'<a href="{rec_albums_info[index][3]}" target="_blank"><img src="{rec_albums_info[index][2]}"></a>'
+            content.append({"type":"image", "data":image_html})
             content.append({"type":"text", "data":rec_albums_info[index][0] + " by " + rec_albums_info[index][1]})
 
     # return(jsonify(songs_info))
+    # return(jsonify(recent_albums))
     return render_template('rec/recs.html', content=content)
 # TODO: create the waiting page that comes in between the first click and the input generation 
 # (or something like that and what not and all of that jazz don't talk to me bruh I am the man and what not.)
@@ -183,5 +190,8 @@ not sure if this is the best way to go about things but it does seem efficient a
 so yeah i know exactly the format of what i am going to be returning every time, 
 so i can just append to content as needed, and then return content at the end with the return statement and what not. 
 
-it would be cool if you could also click on the images and get to the spotify page that hosts them and what not. 
+it would be cool if you could also click on the images and get to the spotify page that hosts them and what not.
+--> this is what i am going to be working on right now and what not. 
 '''
+
+

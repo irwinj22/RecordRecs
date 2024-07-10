@@ -9,7 +9,7 @@
         {% if item.type == 'text' %}
             <p>{{ item.data | replace("/n", "<br>") | safe }}</p>
         {% elif item.type == 'image' %}
-            <img src="{{ item.data }}" alt="Image">
+            <div> {{item.data | safe }} </div>
         {% endif %}
     {% endfor %}
 </body>

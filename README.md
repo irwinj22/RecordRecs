@@ -1,2 +1,2 @@
-Album reccomendations, using Spotify Web API.      
+Album recomendations, using Spotify Web API.      
 https://developer.spotify.com/documentation/web-api
