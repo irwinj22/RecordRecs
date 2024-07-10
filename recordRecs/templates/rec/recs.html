@@ -1,16 +1,25 @@
 <!DOCTYPE html> 
 <html lang = "en">
-<head>
-    <meta charset = "UTF-8">
-    <title>RecordRecs</title>
-</head> 
-<body>
-    {% for item in content %}
-        {% if item.type == 'text' %}
-            <p>{{ item.data | replace("/n", "<br>") | safe }}</p>
-        {% elif item.type == 'image' %}
-            <div> {{item.data | safe }} </div>
-        {% endif %}
-    {% endfor %}
-</body>
+    <head>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    </head> 
+    <body>
+        <div class = "container">
+            <div class="main">
+                {% for item in content %}
+                        {% if item.type == 'text' %}
+                            <p>{{ item.data | replace("/n", "<br>") | safe }}</p>
+                        {% elif item.type == 'image' %}
+                            <div> {{item.data | safe }} </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        <div class="footer">
+            --------------------------------------------------------------------------------------------- <br><br>
+            (c) RecordRecs | 
+            (c) maven | 
+            Created with <a href='https://developer.spotify.com/documentation/web-api' target="_blank"> Spotify Web API</a> 
+        </div>
+    </body>
 </html>

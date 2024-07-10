@@ -1,33 +1,41 @@
 <!DOCTYPE html> 
 <html lang = "en">
-<head>
-</head> 
+    <head>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    </head> 
     <body>
-        <header> 
-            <h1> 
-                RecordRecs
-            </h1>
-        </header>
-        <section>
-            <p>
-                Welcome to RecordRecs. <br> 
-                RecordRecs helps Spotify users discover new albums.<br>
-                It’s an alternative to the tedious process of fumbling through playlists, songs, and concerts to find a new project. <br>
-                Just login with your Spotify account and receive a curated collection of albums, inspired by your recent listening. <br>
-                <br>
-                <a href='/auth/login'>Get recommendations.</a>
-                <br>
-                <br>
-                Please note that recommendations are given based on your saved albums. <br>
-                The application will not work if there are no albums saved in your library. <br>
-                To save albums to your libary, please follow the steps outlined <a href='https://www.youtube.com/watch?v=tj2d_rxwOeI' target="_blank">here.</a>
-            </p>
-        </section>
-        <footer>
-            Created with <a href='https://developer.spotify.com/documentation/web-api' target="_blank"> Spotify Web API</a> <br>
-            (c) RecordRecs <br>
-            (c) maven 
-        </footer>
+        <div class="container">
+            <div class = "main">
+                <header> 
+                    <h1> 
+                        RecordRecs
+                    </h1>
+                </header>
+                <section>
+                    <p>
+                        Welcome to RecordRecs. <br> 
+                        RecordRecs helps Spotify users discover new albums.<br> 
+                        It’s an alternative to the tedious process of fumbling 
+                        through playlists, songs, and concerts to find a new project. <br>
+                        Just login with your Spotify account and receive 
+                        a curated collection of albums, inspired by your recent listening. <br>
+                        <br>
+                        <a href='/auth/login'>Get recommendations.</a>
+                        <br> <br> 
+                        Please note that recommendations are given based on your saved albums. <br>
+                        The application will not work if there are no albums saved in your library. <br>
+                        To save albums to your libary, please follow the steps outlined <a href='https://www.youtube.com/watch?v=tj2d_rxwOeI' target="_blank">here.</a>
+                        <br> <br> <br> <br> <br> <br>
+                    </p>
+                </section>
+            </div>
+        </div>
+        <div class="footer">
+            --------------------------------------------------------------------------------------------- <br><br>
+            (c) RecordRecs | 
+            (c) maven | 
+            Created with <a href='https://developer.spotify.com/documentation/web-api' target="_blank"> Spotify Web API</a> 
+        </div>
     </body>
 </html>
 

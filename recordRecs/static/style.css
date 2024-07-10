@@ -1,0 +1,30 @@
+html, body {
+    font-family:'Times New Roman', Times, serif;
+    font-size: 18px;
+    /* display: flex; */
+    justify-content: center;
+    /* align-items: flex-start; */
+    height: 100%;
+}
+
+.container {
+    width: 60%;
+    /* padding: 20px; */
+    text-align:left; 
+    margin:0 auto 40px;
+    min-height: 100%;
+}
+
+.main {
+    overflow: auto;
+    padding-bottom: 140px;
+}
+
+.footer {
+    position: relative;
+    margin-top: -140px;
+    height: 140px;
+    clear: both;
+    font-size: 16px;
+    text-align: center;
+}
