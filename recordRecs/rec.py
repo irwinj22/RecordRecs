@@ -47,7 +47,6 @@ def recs():
     # first value is album id
     # second value is artist id
     # third value is comma-seperated string containing each song_id within album
-    # TODO: fourth value is album link
     recent_albs_songs = []
 
     # go through each of five most recent albums
@@ -60,12 +59,9 @@ def recs():
         # iterate through the rest of the song_ids, adding to string
         for track in album["album"]["tracks"]["items"][1:]:
             track_ids_str = track_ids_str + "," + track["id"]
-        # get album link
-        # album_link = "haha"
         # finally, append completed tuple to list of tuples
         recent_albs_songs.append(tuple((album["album"]["id"], artist_id, track_ids_str)))
 
-    # print(recent_albs_songs)
     content = []
 
     # iterate through each tuple of list
@@ -119,11 +115,13 @@ def recs():
         
         # NOTE: have to get the images of the albums in this little thing as well from what i understand
         
-        # list of tuples, storing all possible recomendations (up to 20)
-        # first value is recommended album name
-        # second value is recommended artist name
-        # third value is link to album image
-        # fourth value is link to album in spotify player
+        '''
+        list of tuples, storing all possible recomendations (up to 20)
+        first value is recommended album name
+        second value is recommended artist name
+        third value is link to album image
+        fourth value is link to album in spotify player
+        '''
         rec_albums_info = []
         # list of album ids so don't recommend same album twice
         rec_album_ids = []
@@ -151,7 +149,6 @@ def recs():
         indices = random.sample(range(0, albums_added), 6)
 
         # have to store the original album/artist name, then have to get the image for each album
-        # that we are looking through as well for some reason I think tbh.
         try: 
             # get the song recommendations
             response = requests.get(API_BASE_URL + "albums/" + saved_album_id, headers=headers)
@@ -162,13 +159,7 @@ def recs():
         
         album_name = album_info["name"]
         artist_name = album_info["artists"][0]["name"]
-
-        # NOTE: just printing for now, but will eventually change to return to website
-        # print("Because you listend to " + album_name + " by " + artist_name + ", we think you might enjoy:")
-        # for index in indices:
-            # print(rec_albums_info[index][0] + " by " + rec_albums_info[index][1])
         
-        # print("")
         content.append({"type":"text", "data":"<b>Because you listend to " + album_name + " by " + artist_name + ", we think you might enjoy:</b>"})
         for index in indices: 
             image_html = f'<a href="{rec_albums_info[index][3]}" target="_blank"><img src="{rec_albums_info[index][2]}"></a>'
@@ -178,20 +169,22 @@ def recs():
     # return(jsonify(songs_info))
     # return(jsonify(recent_albums))
     return render_template('rec/recs.html', content=content)
-# TODO: create the waiting page that comes in between the first click and the input generation 
-# (or something like that and what not and all of that jazz don't talk to me bruh I am the man and what not.)
-# Ok so as it turns out the loading thing is kind of complicated so i may deal with the later tbh
-# should also determine what I want the general style of the webpage to be and what not.
-
 
 '''
-can just create a list of "content", and then return that at the end of the text of something like that
-not sure if this is the best way to go about things but it does seem efficient and what not.
-so yeah i know exactly the format of what i am going to be returning every time, 
-so i can just append to content as needed, and then return content at the end with the return statement and what not. 
-
-it would be cool if you could also click on the images and get to the spotify page that hosts them and what not.
---> this is what i am going to be working on right now and what not. 
+some things TODO
+- "loading" page in between the initial call and screen generation
+- error handling
+  - what if user doesn't have any saved albums? 
+  - fewer than 5? 
+- clean up the look of the website 
+  - possible to get cohesive look with SPOTIFY interjection?
+- raise good errors within the code ... should they arise 
+  - should be shown to user on the webpage 
+- include image of maven logo on home page? (not sure if I want this tbh) 
+- RELOAD button? 
+  - what if the user doesn't like any of the recs? shouldn't they be able to get new ones?
+  - or what if they listen to new albums in the mean time or something?
+- SEARCH FOR ALBUM? 
+  - kind of just don't want to do this one TBH but we'll see
+- PUT ON WEB FOR REAL :D (eventually)
 '''
-
-
