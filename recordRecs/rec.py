@@ -146,7 +146,7 @@ def recs():
 
         # now, know that we have 20 saved albums, let's choose from those randomly
         # NOTE: we are assuming that at least five are going to be generated, which may not always be the case
-        indices = random.sample(range(0, albums_added), 6)
+        indices = random.sample(range(0, albums_added), 5)
 
         # have to store the original album/artist name, then have to get the image for each album
         try: 
@@ -160,11 +160,11 @@ def recs():
         album_name = album_info["name"]
         artist_name = album_info["artists"][0]["name"]
         
-        content.append({"type":"text", "data":"<b>Because you listend to " + album_name + " by " + artist_name + ", we think you might enjoy:</b>"})
+        content.append({"type":"text", "data":"Because you listened to " + album_name + " by " + artist_name + ", we think you might enjoy:"})
         for index in indices: 
-            image_html = f'<a href="{rec_albums_info[index][3]}" target="_blank"><img src="{rec_albums_info[index][2]}"></a>'
-            content.append({"type":"image", "data":image_html})
-            content.append({"type":"text", "data":rec_albums_info[index][0] + " by " + rec_albums_info[index][1]})
+            image_html = f'<a href="{rec_albums_info[index][3]}" target="_blank"><img src="{rec_albums_info[index][2]}" width="200" height="200"></a>'
+            content.append({"type":"album", "image":image_html, "text":rec_albums_info[index][0] + " by " + rec_albums_info[index][1]})
+            # content.append({"type":"album", "text":rec_albums_info[index][0] + " by " + rec_albums_info[index][1]})
 
     # return(jsonify(songs_info))
     # return(jsonify(recent_albums))
@@ -187,4 +187,6 @@ some things TODO
 - SEARCH FOR ALBUM? 
   - kind of just don't want to do this one TBH but we'll see
 - PUT ON WEB FOR REAL :D (eventually)
+- how to return three albums per line, or something like that ..
+- there should be a thin, black line around the album images
 '''
