@@ -1,0 +1,33 @@
+<!DOCTYPE html> 
+<html lang = "en">
+    <head>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    </head> 
+    <body>
+        <div class="container">
+            <div class = "main">
+                <header> 
+                    <h1> 
+                        RecordRecs
+                    </h1>
+                </header>
+                <section>
+                    <p>
+                        This application cannot give recommendations if there are no albums saved in your library. <br>
+                        Please save at least one album before continuing. <br>
+                        Directions for saving albums on Spotify can be found <a href='https://www.youtube.com/watch?v=tj2d_rxwOeI' target="_blank">here.</a> <br>
+                        <br>
+                        <a href='/auth/login'>OK, let's try again!</a>
+                    </p>
+                </section>
+            </div>
+        </div>
+        <div class="footer">
+            --------------------------------------------------------------------------------------------- <br><br>
+            (c) RecordRecs | 
+            (c) maven | 
+            Created with <a href='https://developer.spotify.com/documentation/web-api' target="_blank"> Spotify Web API</a> 
+        </div>
+    </body>
+</html>
+

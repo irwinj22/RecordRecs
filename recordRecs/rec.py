@@ -33,15 +33,26 @@ def recs():
     headers = {
         'Authorization': f"Bearer {session['access_token']}"
     }
-
-    # TODO: better error-catching
+    
+    # get five most recently listened-to projects
     try: 
-        # get five most recently-listened to projects
         response = requests.get(API_BASE_URL + 'me/albums?limit=5&offset=0', headers=headers)
         recent_albums = response.json()
     except: 
-        print(f"Error returned!!!")
-        return "There is an error!!"
+        print(f"Status Code: {response.status_code}")
+        print(f"Response Headers: {response.headers}")
+        # if hit rate limit, explain to use   
+        # NOTE: should content also be returned in the HTML? not sure if that is good practice tbh.
+        print(response.content)
+        if response.status_code == 429: 
+            return render_template('error/rate_limit.html')
+        return render_template('error/error.html')
+      
+    
+    
+    # check if user has zero albums ... tell them that they need to save some and what no
+    if len(recent_albums["items"]) == 0:
+        return render_template("error/nothing.html")
 
     # list of tuples 
     # first value is album id
@@ -69,14 +80,19 @@ def recs():
         saved_album_id = entry[0]
         saved_artist_id = entry[1]
         song_ids = entry[2]
-        # TODO: raise a better error
+
+        # get the audio features of every song on the album  
         try: 
-            # get the audio features of every song on the album  
             response = requests.get(API_BASE_URL + 'audio-features?ids=' + song_ids, headers=headers)
             songs_info = response.json()
         except: 
-            print(f"Error returned!!!")
-            return "There is an error!!"
+            print(f"Status Code: {response.status_code}")
+            print(f"Response Headers: {response.headers}")
+            print(response.content)
+            # if hit rate limit, explain to user
+            if response.status_code == 429: 
+                return render_template('error/rate_limit.html')
+            return render_template('error/error.html')
         
         # get the average statistics of each song on the album
         total_acousticness = 0
@@ -105,15 +121,22 @@ def recs():
                        str(avg_acousticness) + "&target_danceability=" + str(avg_danceability) + 
                        "&target_instrumentalness=" + str(avg_instrumentalness) + "&target_speechiness=" + 
                        str(avg_speechiness) + "&target_valence=" + str(avg_valence))
+        print("API_BASE_URL: ", API_BASE_URL)
+        print("request_str: ", request_str)
+        print("headers: ", headers)
+
         try: 
             # get the song recommendations
             response = requests.get(API_BASE_URL + request_str, headers=headers)
             songs_info = response.json()
         except: 
-            print(f"Error returned!!!")
-            return "There is an error!!"
-        
-        # NOTE: have to get the images of the albums in this little thing as well from what i understand
+            print(f"Status Code: {response.status_code}")
+            print(f"Response Headers: {response.headers}")
+            print(response.content)
+            # if hit rate limit, explain to user
+            if response.status_code == 429: 
+                return render_template('error/rate_limit.html')
+            return render_template('error/error.html')
         
         '''
         list of tuples, storing all possible recomendations (up to 20)
@@ -149,13 +172,18 @@ def recs():
         indices = random.sample(range(0, albums_added), 5)
 
         # have to store the original album/artist name, then have to get the image for each album
+        # get the song recommendations
         try: 
-            # get the song recommendations
             response = requests.get(API_BASE_URL + "albums/" + saved_album_id, headers=headers)
             album_info = response.json()
         except: 
-            print(f"Error returned!!!")
-            return "There is an error!!"
+            print(f"Status Code: {response.status_code}")
+            print(f"Response Headers: {response.headers}")
+            print(response.content)
+            # if hit rate limit, explain to user
+            if response.status_code == 429: 
+                return render_template('error/rate_limit.html')
+            return render_template('error/error.html')
         
         album_name = album_info["name"]
         artist_name = album_info["artists"][0]["name"]
@@ -164,23 +192,17 @@ def recs():
         for index in indices: 
             image_html = f'<a href="{rec_albums_info[index][3]}" target="_blank"><img src="{rec_albums_info[index][2]}" width="200" height="200"></a>'
             content.append({"type":"album", "image":image_html, "text":rec_albums_info[index][0] + " by " + rec_albums_info[index][1]})
-            # content.append({"type":"album", "text":rec_albums_info[index][0] + " by " + rec_albums_info[index][1]})
 
     # return(jsonify(songs_info))
     # return(jsonify(recent_albums))
+    
     return render_template('rec/recs.html', content=content)
 
 '''
 some things TODO
 - "loading" page in between the initial call and screen generation
-- error handling
-  - what if user doesn't have any saved albums? 
-  - fewer than 5? 
 - clean up the look of the website 
-  - possible to get cohesive look with SPOTIFY interjection?
-- raise good errors within the code ... should they arise 
-  - should be shown to user on the webpage 
-- include image of maven logo on home page? (not sure if I want this tbh) 
+  - possible to get cohesive look with SPOTIFY interjection?) 
 - RELOAD button? 
   - what if the user doesn't like any of the recs? shouldn't they be able to get new ones?
   - or what if they listen to new albums in the mean time or something?
@@ -189,4 +211,5 @@ some things TODO
 - PUT ON WEB FOR REAL :D (eventually)
 - how to return three albums per line, or something like that ..
 - there should be a thin, black line around the album images
+- navigating between pages? seems kind of one-way though tbh
 '''

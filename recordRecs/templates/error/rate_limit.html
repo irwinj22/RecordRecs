@@ -1,0 +1,34 @@
+<!DOCTYPE html> 
+<html lang = "en">
+    <head>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    </head> 
+    <body>
+        <div class="container">
+            <div class = "main">
+                <header> 
+                    <h1> 
+                        RecordRecs
+                    </h1>
+                </header>
+                <section>
+                    <p>
+                        Unfortunately, this application has hit its 
+                        <a rel="stylesheet" href="https://medium.com/@bijit211987/everything-you-need-to-know-about-rate-limiting-for-apis-f236d2adcfff" target="_blank"> rate limit.</a> <br>
+                        A rate limit is, quite literally, a limit on the number of times that a network can be called in a given time period. <br>
+                        This limit is set by Spotify and out of our control. <br> 
+                        Spotify has to reset our rate limit for our services to continue. <br>
+                        Please come again at a later time (generally, a couple of hours).
+                    </p>
+                </section>
+            </div>
+        </div>
+        <div class="footer">
+            --------------------------------------------------------------------------------------------- <br><br>
+            (c) RecordRecs | 
+            (c) maven | 
+            Created with <a href='https://developer.spotify.com/documentation/web-api' target="_blank"> Spotify Web API</a> 
+        </div>
+    </body>
+</html>
+
