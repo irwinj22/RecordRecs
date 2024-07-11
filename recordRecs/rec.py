@@ -103,18 +103,24 @@ def recs():
 
         num_tracks = len(songs_info["audio_features"])
 
+        # NOTE: have to account for interludes (short songs/skits) -- they won't have information on them
+        num_interludes = 0
+        
         for song in songs_info["audio_features"]:
-            total_acousticness += song['acousticness']
-            total_danceability += song['danceability']
-            total_instrumentalness += song['instrumentalness']
-            total_speechiness += song['speechiness']
-            total_valence += song['valence']
+            if song is not None:
+                total_acousticness += song['acousticness']
+                total_danceability += song['danceability']
+                total_instrumentalness += song['instrumentalness']
+                total_speechiness += song['speechiness']
+                total_valence += song['valence']
+            else: 
+                num_interludes += 1
 
-        avg_acousticness = total_acousticness / num_tracks
-        avg_danceability = total_danceability / num_tracks
-        avg_instrumentalness = total_instrumentalness / num_tracks
-        avg_speechiness = total_speechiness / num_tracks
-        avg_valence = total_valence / num_tracks
+        avg_acousticness = total_acousticness / (num_tracks - num_interludes)
+        avg_danceability = total_danceability / (num_tracks - num_interludes)
+        avg_instrumentalness = total_instrumentalness / (num_tracks - num_interludes)
+        avg_speechiness = total_speechiness / (num_tracks - num_interludes)
+        avg_valence = total_valence / (num_tracks - num_interludes)
 
         # now, use these statistics to generate song recommendations
         request_str = ("recommendations?seed_artists=" + saved_artist_id + "&target_acousticness=" + 
@@ -169,7 +175,7 @@ def recs():
 
         # now, know that we have 20 saved albums, let's choose from those randomly
         # NOTE: we are assuming that at least five are going to be generated, which may not always be the case
-        indices = random.sample(range(0, albums_added), 5)
+        indices = random.sample(range(0, albums_added), 6)
 
         # have to store the original album/artist name, then have to get the image for each album
         # get the song recommendations
@@ -190,7 +196,7 @@ def recs():
         
         content.append({"type":"text", "data":"Because you listened to " + album_name + " by " + artist_name + ", we think you might enjoy:"})
         for index in indices: 
-            image_html = f'<a href="{rec_albums_info[index][3]}" target="_blank"><img src="{rec_albums_info[index][2]}" width="200" height="200"></a>'
+            image_html = f'<a href="{rec_albums_info[index][3]}" target="_blank"><img src="{rec_albums_info[index][2]}" width="250" height="250"></a>'
             content.append({"type":"album", "image":image_html, "text":rec_albums_info[index][0] + " by " + rec_albums_info[index][1]})
 
     # return(jsonify(songs_info))
@@ -212,4 +218,5 @@ some things TODO
 - how to return three albums per line, or something like that ..
 - there should be a thin, black line around the album images
 - navigating between pages? seems kind of one-way though tbh
+-- what happens if someone clicks cancel? should something pop-up? redirect to home?
 '''

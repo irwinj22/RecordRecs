@@ -1,9 +1,7 @@
 html, body {
     font-family:'Times New Roman', Times, serif;
     font-size: 18px;
-    /* display: flex; */
     justify-content: center;
-    /* align-items: flex-start; */
     height: 100%;
 }
 
@@ -30,13 +28,24 @@ html, body {
 }
 
 .albums-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-    justify-items: center;
-    align-items: start;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    width: 20%
 }
 
-.content-item {
+.album-item {
+    flex: 1 1 calc(50% - 10px);
+    box-sizing: border-box;
     text-align: center;
 }   
+
+.text-item {
+    text-align: left;
+    text-overflow: ellipses;
+    white-space: nowrap;
+}
+
+img {
+    border: 1px solid black;
+}

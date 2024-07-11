@@ -5,16 +5,25 @@
     </head> 
     <body>
         <div class = "container">
-            <div class="main albums-grid">
+            <div class="main"> 
+                <header> 
+                    <h1> 
+                        RecordRecs
+                    </h1>
+                </header>
                 {% for item in content %}
-                    <div class = "content-item">
-                        {% if item.type == 'album' %}
-                            <div> {{item.image | safe }} </div>
-                            <p> {{item.text | safe }} </p>
-                        {% elif item.type == 'text' %}
-                            <p> {{item.data | safe }}</p>
-                        {% endif %}
-                    </div>
+                    {% if item.type == 'text' %}
+                        <div class = "text-item">
+                            <p> {{ item.data | safe }} </p>            
+                        </div>
+                    {% elif item.type == 'album' %}
+                        <div class = "albums-grid">
+                            <div class = "album-item">
+                                <div> {{ item.image | safe }} </div>
+                                <p> {{ item.text | safe }} </p>
+                            </div>
+                        </div>
+                    {% endif %}
                 {% endfor %}
             </div>
         </div>
