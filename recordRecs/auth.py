@@ -47,11 +47,11 @@ User successfully logs in, get session info.
 '''
 @bp.route('/callback')
 def callback():
-
-    # check for error
+    # error occurs iff "cancel" pressed during login process, 
+    # so will just redirect to homepage.
     if "error" in request.args: 
-        return jsonify({"error" : request.args['error']})
-    
+        return redirect(url_for("index.index"))
+
     # if we get good response
     if 'code' in request.args: 
         req_body = {
@@ -71,7 +71,4 @@ def callback():
         # this is necessary because we have to check if the access_token has expired
         session['expires_at'] = datetime.now().timestamp() + token_info['expires_in']
 
-        # TODO: figure out how to redirect across the blueprint and what not. 
         return redirect(url_for("rec.recs"))
-
-# i think there has to be an auth in there somehow and I am not sure how to make that work tbh with you.
