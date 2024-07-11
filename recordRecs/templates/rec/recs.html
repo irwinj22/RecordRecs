@@ -11,20 +11,27 @@
                         RecordRecs
                     </h1>
                 </header>
+                <!-- open up a grid -->
+                <div class = "albums-grid">
                 {% for item in content %}
                     {% if item.type == 'text' %}
-                        <div class = "text-item">
-                            <p> {{ item.data | safe }} </p>            
+                        <!-- close grid if text -->
                         </div>
-                    {% elif item.type == 'album' %}
-                        <div class = "albums-grid">
-                            <div class = "album-item">
-                                <div> {{ item.image | safe }} </div>
-                                <p> {{ item.text | safe }} </p>
+                            <div class = "text-item">
+                                <p> {{ item.data | safe }} </p>            
                             </div>
+                        <!-- then open up another one-->
+                        <div class = "albums-grid">
+                    {% elif item.type == 'album' %}
+                        <!-- keep grid open if album-->
+                        <div class = "album-item">
+                            <div> {{ item.image | safe }} </div>
+                            <p> {{ item.text | safe }} </p>
                         </div>
                     {% endif %}
                 {% endfor %}
+                <!-- will end with album, so have to make sure to close grid -->
+                </div>
             </div>
         </div>
         <div class="footer">

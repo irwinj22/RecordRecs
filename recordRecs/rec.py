@@ -194,9 +194,9 @@ def recs():
         album_name = album_info["name"]
         artist_name = album_info["artists"][0]["name"]
         
-        content.append({"type":"text", "data":"Because you listened to " + album_name + " by " + artist_name + ", we think you might enjoy:"})
+        content.append({"type":"text", "data":"Because you listened to <b> " + album_name + " </b> by <b> " + artist_name + "</b>, we think you might enjoy:"})
         for index in indices: 
-            image_html = f'<a href="{rec_albums_info[index][3]}" target="_blank"><img src="{rec_albums_info[index][2]}" width="250" height="250"></a>'
+            image_html = f'<a href="{rec_albums_info[index][3]}" target="_blank"><img src="{rec_albums_info[index][2]}" width="200" height="200"></a>'
             content.append({"type":"album", "image":image_html, "text":rec_albums_info[index][0] + " by " + rec_albums_info[index][1]})
 
     # return(jsonify(songs_info))
