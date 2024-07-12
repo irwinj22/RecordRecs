@@ -207,16 +207,9 @@ def recs():
 '''
 some things TODO
 - "loading" page in between the initial call and screen generation
-- clean up the look of the website 
-  - possible to get cohesive look with SPOTIFY interjection?) 
 - RELOAD button? 
   - what if the user doesn't like any of the recs? shouldn't they be able to get new ones?
   - or what if they listen to new albums in the mean time or something?
-- SEARCH FOR ALBUM? 
-  - kind of just don't want to do this one TBH but we'll see
 - PUT ON WEB FOR REAL :D (eventually)
-- how to return three albums per line, or something like that ..
-- there should be a thin, black line around the album images
 - navigating between pages? seems kind of one-way though tbh
--- what happens if someone clicks cancel? should something pop-up? redirect to home?
 '''

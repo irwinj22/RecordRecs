@@ -19,7 +19,7 @@
                         </div>
                             <div class = "text-item">
                                 <p> {{ item.data | safe }} </p>            
-                            </div>
+                        </div>
                         <!-- then open up another one-->
                         <div class = "albums-grid">
                     {% elif item.type == 'album' %}
@@ -42,3 +42,7 @@
         </div>
     </body>
 </html>
+
+<!-- going to have to wait until after rate limit to see if this works ...
+ credit for the loading: https://stackoverflow.com/questions/244183/how-to-display-a-loading-screen-while-site-content-loads 
+-->

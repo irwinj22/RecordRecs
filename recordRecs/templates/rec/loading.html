@@ -2,6 +2,13 @@
 <html lang = "en">
     <head>
         <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+        <script> 
+            window.onload = function() {
+                let redirectURL = "{{ url_for('rec.recs') }}";
+                console.log("REDIRECTING TO: ", redirectURL);
+                location.replace(redirectURL);
+            };
+        </script>
     </head> 
     <body>
         <div class="container">
@@ -13,12 +20,7 @@
                 </header>
                 <section>
                     <p>
-                        Unfortunately, this application has hit its 
-                        <a rel="stylesheet" href="https://medium.com/@bijit211987/everything-you-need-to-know-about-rate-limiting-for-apis-f236d2adcfff" target="_blank"> rate limit.</a> <br>
-                        A rate limit is, quite literally, a limit on the number of times that a network can be called in a given time period. <br>
-                        This limit is set by Spotify and out of our control. <br> 
-                        Spotify has to reset our rate limit for our services to continue. <br>
-                        Please come again at a later time.
+                        Please wait a moment, your recommendations are being generated ...
                     </p>
                 </section>
             </div>

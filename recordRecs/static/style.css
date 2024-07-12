@@ -30,9 +30,10 @@ html, body {
 .albums-grid {
     display: grid;
     grid-template-columns: 33.3% 33.3% 33.3%;
-    column-gap: 10px;
+    column-gap: 2px;
     justify-items: center;
     align-items: start;
+    overflow: hidden;
     /* width: 20% */
 }
 
