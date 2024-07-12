@@ -206,10 +206,8 @@ def recs():
 
 '''
 some things TODO
-- "loading" page in between the initial call and screen generation
 - RELOAD button? 
   - what if the user doesn't like any of the recs? shouldn't they be able to get new ones?
   - or what if they listen to new albums in the mean time or something?
 - PUT ON WEB FOR REAL :D (eventually)
-- navigating between pages? seems kind of one-way though tbh
 '''
