@@ -48,8 +48,6 @@ def recs():
             return render_template('error/rate_limit.html')
         return render_template('error/error.html')
       
-    
-    
     # check if user has zero albums ... tell them that they need to save some and what no
     if len(recent_albums["items"]) == 0:
         return render_template("error/nothing.html")
@@ -198,16 +196,5 @@ def recs():
         for index in indices: 
             image_html = f'<a href="{rec_albums_info[index][3]}" target="_blank"><img src="{rec_albums_info[index][2]}" width="200" height="200"></a>'
             content.append({"type":"album", "image":image_html, "text":rec_albums_info[index][0] + " by " + rec_albums_info[index][1]})
-
-    # return(jsonify(songs_info))
-    # return(jsonify(recent_albums))
     
     return render_template('rec/recs.html', content=content)
-
-'''
-some things TODO
-- RELOAD button? 
-  - what if the user doesn't like any of the recs? shouldn't they be able to get new ones?
-  - or what if they listen to new albums in the mean time or something?
-- PUT ON WEB FOR REAL :D (eventually)
-'''
