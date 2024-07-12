@@ -129,8 +129,8 @@ def recs():
         print("request_str: ", request_str)
         print("headers: ", headers)
 
+        # get the song recommendations
         try: 
-            # get the song recommendations
             response = requests.get(API_BASE_URL + request_str, headers=headers)
             songs_info = response.json()
         except: 
@@ -150,7 +150,7 @@ def recs():
         fourth value is link to album in spotify player
         '''
         rec_albums_info = []
-        # list of album ids so don't recommend same album twice
+        # list of album ids so don't recommend same album twice ...
         rec_album_ids = []
         albums_added = 0 
         # now we have song info, get albums that they belong to

@@ -22,7 +22,7 @@ API_BASE_URL = os.getenv('API_BASE_URL')
 '''
 Login with Spotify account.
 '''
-@bp.route('/login')
+@bp.route('/')
 def login():
 
     # what we need access to
@@ -70,7 +70,6 @@ def callback():
         # number of seconds from epoch + time until expiration 
         # this is necessary because we have to check if the access_token has expired
         session['expires_at'] = datetime.now().timestamp() + token_info['expires_in']
-
 
         # what if i just redirect to a different page, then from that page go and load the recs or something
         return render_template("rec/loading.html")
