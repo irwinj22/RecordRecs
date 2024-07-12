@@ -22,7 +22,7 @@ API_BASE_URL = os.getenv('API_BASE_URL')
 '''
 Login with Spotify account.
 '''
-@bp.route('/')
+@bp.route('/login')
 def login():
 
     # what we need access to
