@@ -172,8 +172,7 @@ def recs():
                 break
 
         # now, know that we have 20 saved albums, let's choose from those randomly
-        # NOTE: we are assuming that at least five are going to be generated, which may not always be the case
-        indices = random.sample(range(0, albums_added), 6)
+        indices = random.sample(range(0, albums_added), min(albums_added, 6))
 
         # have to store the original album/artist name, then have to get the image for each album
         # get the song recommendations
