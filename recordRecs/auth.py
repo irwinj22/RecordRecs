@@ -15,6 +15,7 @@ load_dotenv()
 CLIENT_ID = os.getenv('CLIENT_ID')
 CLIENT_SECRET =os.getenv('CLIENT_SECRET')
 REDIRECT_URI = os.getenv('REDIRECT_URI')
+REDIRECT_URI = "http://localhost:5000/auth/callback"
 AUTH_URL = os.getenv('AUTH_URL')
 TOKEN_URL = os.getenv('TOKEN_URL')
 API_BASE_URL = os.getenv('API_BASE_URL')
@@ -24,7 +25,8 @@ Login with Spotify account.
 '''
 @bp.route('/login')
 def login():
-
+    # print("HI")
+    # print("REDIRECT_URI: ", REDIRECT_URI)
     # what we need access to
     scope = "user-read-private user-read-email user-library-read"
     params = {
@@ -65,6 +67,8 @@ def callback():
         response = requests.post(TOKEN_URL, data=req_body)
         token_info = response.json()
 
+        print("TOKEN_INFO: ", token_info)
+
         session['access_token'] = token_info['access_token']
         session["refresh_token"] = token_info['refresh_token']
         # number of seconds from epoch + time until expiration 
@@ -72,5 +76,8 @@ def callback():
         session['expires_at'] = datetime.now().timestamp() + token_info['expires_in']
 
         # what if i just redirect to a different page, then from that page go and load the recs or something
-        return render_template("rec/recs.html")
+        return render_template("rec/loading.html")
         # return redirect(url_for("rec.recs"))
+
+
+# oh maybe my session has expired or something like that
