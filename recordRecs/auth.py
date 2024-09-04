@@ -15,7 +15,7 @@ load_dotenv()
 CLIENT_ID = os.getenv('CLIENT_ID')
 CLIENT_SECRET =os.getenv('CLIENT_SECRET')
 REDIRECT_URI = os.getenv('REDIRECT_URI')
-REDIRECT_URI = "http://localhost:5000/auth/callback"
+REDIRECT_URI = "http://irwinj22.pythonanywhere.com/auth/callback"
 AUTH_URL = os.getenv('AUTH_URL')
 TOKEN_URL = os.getenv('TOKEN_URL')
 API_BASE_URL = os.getenv('API_BASE_URL')
@@ -49,6 +49,7 @@ User successfully logs in, get session info.
 '''
 @bp.route('/callback')
 def callback():
+    print("WE HAVE MADE IT TO THE CALLBACK")
     # error occurs iff "cancel" pressed during login process, 
     # so will just redirect to homepage.
     if "error" in request.args: 
