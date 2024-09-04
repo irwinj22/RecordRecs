@@ -72,4 +72,5 @@ def callback():
         session['expires_at'] = datetime.now().timestamp() + token_info['expires_in']
 
         # what if i just redirect to a different page, then from that page go and load the recs or something
-        return render_template("rec/loading.html")
+        return render_template("rec/recs.html")
+        # return redirect(url_for("rec.recs"))
